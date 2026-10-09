@@ -1,0 +1,44 @@
+name: Cask CI
+
+on:
+  push:
+    paths:
+      - "Casks/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "Casks/**"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew tap
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/chiaki-li"
+          ln -s "$GITHUB_WORKSPACE" \
+            "$(brew --repository)/Library/Taps/chiaki-li/homebrew-cask"
+
+      - name: Validate Casks
+        run: |
+          set -euo pipefail
+
+          for cask in Casks/*.rb; do
+            token="$(basename "$cask" .rb)"
+
+            echo "::group::Checking $token"
+
+            ruby -c "$cask"
+            brew audit --cask --strict "ChiaKi-Li/cask/$token"
+
+            echo "::endgroup::"
+          done
