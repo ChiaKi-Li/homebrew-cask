@@ -46,17 +46,17 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### 更新
 
-更新 Homebrew 和已安装的应用：
+更新 Homebrew 和指定应用，将 `token` 替换为应用的 Cask 名称：
 
 ```bash
 brew update
-brew upgrade --cask
+brew upgrade --cask ChiaKi-Li/cask/token
 ```
 
 检查上游发布版本：
 
 ```bash
-brew livecheck --cask ChiaKi-Li/cask/ftop
+brew livecheck --cask ChiaKi-Li/cask/token
 ```
 
 ### 维护
@@ -117,17 +117,17 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### Updating
 
-Update Homebrew and installed applications:
+Update Homebrew and a specific application, replacing `token` with the application's Cask name:
 
 ```bash
 brew update
-brew upgrade --cask
+brew upgrade --cask ChiaKi-Li/cask/token
 ```
 
 To check for upstream releases:
 
 ```bash
-brew livecheck --cask ChiaKi-Li/cask/ftop
+brew livecheck --cask ChiaKi-Li/cask/token
 ```
 
 ### Maintenance
