@@ -12,10 +12,10 @@
 
 ### 安装
 
-直接安装应用，将 `<token>` 替换为下方应用列表中的 Cask 名称：
+直接安装应用，将 `token` 替换为下方应用列表中的 Cask 名称：
 
 ```bash
-brew install --cask "ChiaKi-Li/cask/<token>"
+brew install --cask ChiaKi-Li/cask/token
 ```
 
 也可以先添加 tap：
@@ -27,13 +27,13 @@ brew tap ChiaKi-Li/cask
 如果已手动安装应用到 Homebrew 的目标位置（默认是 `/Applications`），可以使用 `--adopt` 接管现有应用：
 
 ```bash
-brew install --cask --adopt "ChiaKi-Li/cask/<token>"
+brew install --cask --adopt ChiaKi-Li/cask/token
 ```
 
 接管前请确认本地应用版本与 Cask 提供的版本一致。查看 Cask 版本：
 
 ```bash
-brew info --cask "ChiaKi-Li/cask/<token>"
+brew info --cask ChiaKi-Li/cask/token
 ```
 
 ### 可用应用
@@ -83,10 +83,10 @@ This repository provides community-maintained Casks for applications that are no
 
 ### Installation
 
-Install an application directly, replacing `<token>` with the Cask name from the table below:
+Install an application directly, replacing `token` with the Cask name from the table below:
 
 ```bash
-brew install --cask "ChiaKi-Li/cask/<token>"
+brew install --cask ChiaKi-Li/cask/token
 ```
 
 Or add the tap first:
@@ -98,13 +98,13 @@ brew tap ChiaKi-Li/cask
 If you have manually installed the application in Homebrew's target location (usually `/Applications`), use `--adopt` to adopt the existing application:
 
 ```bash
-brew install --cask --adopt "ChiaKi-Li/cask/<token>"
+brew install --cask --adopt ChiaKi-Li/cask/token
 ```
 
 Before adopting, confirm that the installed application version matches the version provided by the Cask. Check the Cask version with:
 
 ```bash
-brew info --cask "ChiaKi-Li/cask/<token>"
+brew info --cask ChiaKi-Li/cask/token
 ```
 
 ### Available Casks
