@@ -70,6 +70,11 @@ jobs:
             echo "Updating $token to $latest"
 
             case "$token" in
+              axolotl-launcher)
+                repository="Mystic-Stars/Axolotl"
+                tag="v${latest}"
+                url="https://github.com/Mystic-Stars/Axolotl/releases/download/v${latest}/Axolotl.Launcher_${latest}_universal.dmg"
+                ;;
               ftop)
                 repository="Nongfsq/ftop"
                 tag="v${latest}"

@@ -28,6 +28,7 @@ brew tap ChiaKi-Li/cask
 
 | 应用 | 简介 | 安装命令 |
 |---|---|---|
+| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft 启动器 | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | 用于 Apple Silicon Mac 的浮动系统监视器 | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | 支持弹幕的番剧在线观看应用 | `brew install --cask ChiaKi-Li/cask/kazumi` |
 
@@ -86,6 +87,7 @@ brew tap ChiaKi-Li/cask
 
 | Application | Description | Installation |
 |---|---|---|
+| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
 
