@@ -38,11 +38,13 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### 可用应用
 
+<!-- casks:zh:start -->
 | 应用 | 简介 | 安装命令 |
 |---|---|---|
-| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft 启动器 | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
-| [ftop](https://github.com/Nongfsq/ftop) | 用于 Apple Silicon Mac 的浮动系统监视器 | `brew install --cask ChiaKi-Li/cask/ftop` |
-| [Kazumi](https://github.com/Predidit/Kazumi) | 支持弹幕的番剧在线观看应用 | `brew install --cask ChiaKi-Li/cask/kazumi` |
+| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
+| [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
+| [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
+<!-- casks:zh:end -->
 
 ### 更新
 
@@ -65,9 +67,13 @@ brew livecheck --cask ChiaKi-Li/cask/token
 - 检查上游发布版本以发现更新。
 - 自动更新通过 PR 提出，自动验证通过后以 squash 方式合并。
 - 创建更新 PR 前验证发布资产和校验值；创建后检出 PR 的实际提交，对所有 Cask 执行 Ruby 语法检查和严格在线 Homebrew 审计。检查失败或提交发生变化时，不会自动合并。
-- 需要在 **Settings → Actions → General → Workflow permissions** 中允许 GitHub Actions 创建 PR。使用 `GITHUB_TOKEN` 创建的 PR 不会自动触发 PR CI，因此由更新工作流验证后合并；不会绕过分支保护规则。
+- 需要在 **Settings → Actions → General → Workflow permissions** 中允许 GitHub Actions 创建 PR。使用 `GITHUB_TOKEN` 创建的 PR，其 PR CI 可能无法自动运行，因此由更新工作流验证后合并；不会绕过分支保护规则。
 
-要手动检查更新工作流，请在 Actions 页面运行 **Update Casks**。所有 Cask 都是最新版时，不会创建 PR；发现较新的稳定版本时，工作流会创建或更新 `automation/update-casks` 分支的 PR，验证通过后自动合并；失败时保留 PR 供维护者检查。
+要手动检查更新工作流，请在 Actions 页面运行 **Update Casks**。版本和应用列表均无变化时，不会创建 PR；发现较新的稳定版本或应用列表需要更新时，工作流会创建或更新 `automation/update-casks` 分支的 PR，验证通过后自动合并；失败时保留 PR 供维护者检查。
+
+新增符合以下格式的应用，只需提交 `Casks/<token>.rb`，默认分支收到 Cask 修改后会自动运行更新流程并补齐应用列表：单一数字版本、单一 SHA256、GitHub Releases 下载地址随版本变化，以及显式配置的可靠 `livecheck`。仓库、标签和下载文件从 Cask 解析，不需要修改工作流。应用列表由 Cask 的 `name`、`desc` 和 `homepage` 生成，中英文表格均使用英文简介。
+
+多架构分别下载、语言分支、复杂版本或非 GitHub 下载源暂不支持自动更新，会保留 Cask 并报告原因。下载、发布资产或校验错误会使更新流程失败。首次加入应用仍需人工核对架构、系统要求和应用包；自动审计不能代替实际运行测试。
 
 ### 免责声明
 
@@ -109,11 +115,13 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### Available Casks
 
+<!-- casks:en:start -->
 | Application | Description | Installation |
 |---|---|---|
 | [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
+<!-- casks:en:end -->
 
 ### Updating
 
@@ -136,9 +144,13 @@ brew livecheck --cask ChiaKi-Li/cask/token
 - Upstream releases are monitored for updates.
 - Automated updates are proposed through pull requests and squash-merged after automated validation.
 - Release assets and checksums are validated before creating a PR. The actual PR commit is then checked with Ruby syntax checks and strict online Homebrew audits for all Casks. Failed checks or a changed PR commit prevent automatic merging.
-- GitHub Actions must be allowed to create pull requests under **Settings → Actions → General → Workflow permissions**. PRs created with `GITHUB_TOKEN` do not trigger PR CI automatically, so the update workflow validates and merges them without bypassing branch protection rules.
+- GitHub Actions must be allowed to create pull requests under **Settings → Actions → General → Workflow permissions**. PR CI for PRs created with `GITHUB_TOKEN` may not run automatically, so the update workflow validates and merges them without bypassing branch protection rules.
 
-To check the update workflow manually, run **Update Casks** from the Actions tab. When all Casks are current, no PR is created. When a newer stable release is available, the workflow creates or updates `automation/update-casks` for validation and automatic merging. Failed validation leaves the PR open for investigation.
+To check the update workflow manually, run **Update Casks** from the Actions tab. When versions and application tables are unchanged, no PR is created. When a newer stable release is available or the tables need refreshing, the workflow creates or updates `automation/update-casks` for validation and automatic merging. Failed validation leaves the PR open for investigation.
+
+To add a supported application, submit only `Casks/<token>.rb`. Cask changes on the default branch trigger the update workflow and refresh the application tables. Supported Casks have one numeric version, one SHA256, a version-dependent GitHub Releases URL, and an explicit reliable `livecheck`. Repository, tag, and asset information come from the Cask, without workflow changes. Both tables are generated from `name`, `desc`, and `homepage`, using the English description.
+
+Separate architecture downloads, language branches, complex versions, and non-GitHub sources are not automatically updated; they are left unchanged with a warning. Download, release asset, or checksum errors fail the workflow. New applications still require manual verification of architectures, macOS requirements, and application bundles; automated audits do not replace runtime testing.
 
 ### Disclaimer
 

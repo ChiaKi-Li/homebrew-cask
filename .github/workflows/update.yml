@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Casks/**"
 
 permissions:
   contents: write
@@ -18,6 +22,7 @@ env:
 
 jobs:
   update:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: macos-latest
 
     steps:
@@ -33,98 +38,19 @@ jobs:
           ln -s "$GITHUB_WORKSPACE" \
             "$(brew --repository)/Library/Taps/chiaki-li/homebrew-cask"
 
-      - name: Update outdated Casks
+      - name: Test updater
+        run: python3 -B -m unittest discover -s tests -v
+
+      - name: Update Casks and README
         env:
           GH_TOKEN: ${{ github.token }}
           HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
-        shell: bash
+        run: python3 -B scripts/update_casks.py update
+
+      - name: Save expected PR contents
         run: |
-          set -euo pipefail
-
-          for file in Casks/*.rb; do
-            token="$(basename "$file" .rb)"
-
-            if ! result="$(brew livecheck --cask --json "ChiaKi-Li/cask/$token")"; then
-              echo "::error::livecheck failed for $token"
-              printf '%s\n' "$result" >&2
-              exit 1
-            fi
-
-            if ! jq -e --arg token "$token" '
-              length == 1 and .[0].cask == $token and
-              (.[0].version.outdated | type == "boolean") and
-              (.[0].version.latest | type == "string" and test("^[0-9]+(\\.[0-9]+)+$"))
-            ' <<< "$result" > /dev/null; then
-              echo "::error::Unexpected livecheck result for $token"
-              printf '%s\n' "$result" >&2
-              exit 1
-            fi
-            outdated="$(jq -r '.[0].version.outdated' <<< "$result")"
-            latest="$(jq -r '.[0].version.latest' <<< "$result")"
-
-            if [[ "$outdated" != "true" ]]; then
-              echo "$token is up to date"
-              continue
-            fi
-
-            echo "Updating $token to $latest"
-
-            case "$token" in
-              axolotl-launcher)
-                repository="Mystic-Stars/Axolotl"
-                tag="v${latest}"
-                url="https://github.com/Mystic-Stars/Axolotl/releases/download/v${latest}/Axolotl.Launcher_${latest}_universal.dmg"
-                ;;
-              ftop)
-                repository="Nongfsq/ftop"
-                tag="v${latest}"
-                url="https://github.com/Nongfsq/ftop/releases/download/v${latest}/Ftop-${latest}-arm64.zip"
-                ;;
-              kazumi)
-                repository="Predidit/Kazumi"
-                tag="$latest"
-                url="https://github.com/Predidit/Kazumi/releases/download/${latest}/Kazumi_macos_${latest}.dmg"
-                ;;
-              *)
-                echo "Unsupported cask: $token"
-                exit 1
-                ;;
-            esac
-
-            release="$(gh api "repos/$repository/releases/tags/$tag")"
-            jq -e --arg tag "$tag" --arg url "$url" '
-              .tag_name == $tag and .draft == false and .prerelease == false and
-              ([.assets[] | select(.browser_download_url == $url)] | length == 1)
-            ' <<< "$release" > /dev/null
-
-            archive="$(mktemp)"
-            trap 'rm -f "$archive"' EXIT
-            curl -fL --retry 3 -o "$archive" "$url"
-            checksum="$(shasum -a 256 "$archive" | awk '{print $1}')"
-            digest="$(jq -r --arg url "$url" '.assets[] | select(.browser_download_url == $url) | .digest // empty' <<< "$release")"
-            if [[ -n "$digest" && "$digest" != "sha256:$checksum" ]]; then
-              echo "Checksum differs from the upstream asset digest: $token" >&2
-              exit 1
-            fi
-            rm -f "$archive"
-
-            ruby - "$file" "$latest" "$checksum" <<'RUBY'
-          path, version, checksum = ARGV
-          content = File.read(path)
-
-          abort "Version not found" unless content.match?(/^\s*version "/)
-          abort "SHA256 not found" unless content.match?(/^\s*sha256 "/)
-
-          content.sub!(/^\s*version ".*"/, %(  version "#{version}"))
-          content.sub!(/^\s*sha256 ".*"/, %(  sha256 "#{checksum}"))
-
-          File.write(path, content)
-          RUBY
-
-            ruby -c "$file"
-            brew info --cask --json=v2 "ChiaKi-Li/cask/$token" |
-              jq -e --arg url "$url" '.casks[0].url == $url' > /dev/null
-          done
+          python3 -B scripts/update_casks.py snapshot --manifest "$RUNNER_TEMP/cask-update.json"
+          cp scripts/update_casks.py "$RUNNER_TEMP/verify-cask-update.py"
 
       - name: Create Pull Request
         id: cpr
@@ -133,46 +59,46 @@ jobs:
           base: ${{ github.event.repository.default_branch }}
           branch: automation/update-casks
           delete-branch: true
-          add-paths: Casks/*.rb
+          add-paths: |
+            Casks/*.rb
+            README.md
           commit-message: "chore: update casks"
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          title: "chore: update outdated casks"
+          title: "chore: update casks and application list"
           body: |
-            Automated Cask updates.
+            Automated Cask updates and generated README application tables.
 
             The update workflow validates the PR commit with Ruby syntax checks
             and strict online Homebrew audits before automatically merging it.
             Failed validation leaves the PR open for manual investigation.
 
-      # GITHUB_TOKEN-created PRs do not trigger PR CI; validate the PR commit here.
+      # PR CI may not run automatically for GITHUB_TOKEN-created PRs; validate here.
       - name: Checkout update PR commit
-        if: steps.cpr.outputs.pull-request-number != ''
+        if: steps.cpr.outputs.pull-request-number != '' && steps.cpr.outputs.pull-request-operation != 'closed'
         uses: actions/checkout@v7
         with:
           ref: ${{ steps.cpr.outputs.pull-request-head-sha }}
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Validate update PR
-        if: steps.cpr.outputs.pull-request-number != ''
+        if: steps.cpr.outputs.pull-request-number != '' && steps.cpr.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ github.token }}
           HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
           set -euo pipefail
-          # Only Cask changes from the dedicated update branch may be merged.
+          # Only the exact proposal from the dedicated update branch may be merged.
           gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --json baseRefName,headRefName,isCrossRepository |
             jq -e --arg base "${{ github.event.repository.default_branch }}" '
               .baseRefName == $base and .headRefName == "automation/update-casks" and
               .isCrossRepository == false
             ' > /dev/null
-          files="$(gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --name-only)"
-          [[ -n "$files" ]]
-          while IFS= read -r file; do
-            [[ "$file" =~ ^Casks/[^/]+\.rb$ ]] || exit 1
-          done <<< "$files"
+          python3 -B "$RUNNER_TEMP/verify-cask-update.py" verify \
+            --root "$GITHUB_WORKSPACE" --manifest "$RUNNER_TEMP/cask-update.json"
           for file in Casks/*.rb; do
             token="$(basename "$file" .rb)"
             ruby -c "$file"
@@ -180,7 +106,7 @@ jobs:
           done
 
       - name: Merge validated update PR
-        if: steps.cpr.outputs.pull-request-number != ''
+        if: steps.cpr.outputs.pull-request-number != '' && steps.cpr.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}

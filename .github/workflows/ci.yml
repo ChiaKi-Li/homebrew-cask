@@ -4,11 +4,15 @@ on:
   push:
     paths:
       - "Casks/**"
+      - "scripts/**"
+      - "tests/**"
       - ".github/workflows/ci.yml"
       - ".github/workflows/update.yml"
   pull_request:
     paths:
       - "Casks/**"
+      - "scripts/**"
+      - "tests/**"
       - ".github/workflows/ci.yml"
       - ".github/workflows/update.yml"
   workflow_dispatch:
@@ -34,6 +38,9 @@ jobs:
           mkdir -p "$(brew --repository)/Library/Taps/chiaki-li"
           ln -s "$GITHUB_WORKSPACE" \
             "$(brew --repository)/Library/Taps/chiaki-li/homebrew-cask"
+
+      - name: Test updater
+        run: python3 -B -m unittest discover -s tests -v
 
       - name: Validate Casks
         run: |
