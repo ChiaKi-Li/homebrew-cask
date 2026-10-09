@@ -5,14 +5,19 @@ on:
     paths:
       - "Casks/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/update.yml"
   pull_request:
     paths:
       - "Casks/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/update.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
 
 jobs:
   audit:
@@ -20,7 +25,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Homebrew tap
         run: |

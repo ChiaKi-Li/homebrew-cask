@@ -9,13 +9,23 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: update-casks
+  cancel-in-progress: false
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+
 jobs:
   update:
     runs-on: macos-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
 
       - name: Set up Homebrew tap
         run: |
@@ -25,7 +35,7 @@ jobs:
 
       - name: Update outdated Casks
         env:
-          HOMEBREW_NO_AUTO_UPDATE: "1"
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -35,6 +45,11 @@ jobs:
 
             result="$(brew livecheck --cask --json "ChiaKi-Li/cask/$token")"
 
+            jq -e --arg token "$token" '
+              length == 1 and .[0].cask == $token and
+              (.[0].version.outdated | type == "boolean") and
+              (.[0].version.latest | type == "string" and test("^[0-9]+(\\.[0-9]+)+$"))
+            ' <<< "$result" > /dev/null
             outdated="$(jq -r '.[0].version.outdated' <<< "$result")"
             latest="$(jq -r '.[0].version.latest' <<< "$result")"
 
@@ -47,9 +62,13 @@ jobs:
 
             case "$token" in
               ftop)
+                repository="Nongfsq/ftop"
+                tag="v${latest}"
                 url="https://github.com/Nongfsq/ftop/releases/download/v${latest}/Ftop-${latest}-arm64.zip"
                 ;;
               kazumi)
+                repository="Predidit/Kazumi"
+                tag="$latest"
                 url="https://github.com/Predidit/Kazumi/releases/download/${latest}/Kazumi_macos_${latest}.dmg"
                 ;;
               *)
@@ -58,9 +77,21 @@ jobs:
                 ;;
             esac
 
+            release="$(gh api "repos/$repository/releases/tags/$tag")"
+            jq -e --arg tag "$tag" --arg url "$url" '
+              .tag_name == $tag and .draft == false and .prerelease == false and
+              ([.assets[] | select(.browser_download_url == $url)] | length == 1)
+            ' <<< "$release" > /dev/null
+
             archive="$(mktemp)"
+            trap 'rm -f "$archive"' EXIT
             curl -fL --retry 3 -o "$archive" "$url"
             checksum="$(shasum -a 256 "$archive" | awk '{print $1}')"
+            digest="$(jq -r --arg url "$url" '.assets[] | select(.browser_download_url == $url) | .digest // empty' <<< "$release")"
+            if [[ -n "$digest" && "$digest" != "sha256:$checksum" ]]; then
+              echo "Checksum differs from the upstream asset digest: $token" >&2
+              exit 1
+            fi
             rm -f "$archive"
 
             ruby - "$file" "$latest" "$checksum" <<'RUBY'
@@ -77,19 +108,37 @@ jobs:
           RUBY
 
             ruby -c "$file"
-            brew audit --cask --strict "ChiaKi-Li/cask/$token"
+            brew info --cask --json=v2 "ChiaKi-Li/cask/$token" |
+              jq -e --arg url "$url" '.casks[0].url == $url' > /dev/null
+          done
+
+      # Validate here: PR workflows created by GITHUB_TOKEN may need approval.
+      - name: Validate Casks before proposing updates
+        run: |
+          set -euo pipefail
+          for file in Casks/*.rb; do
+            token="$(basename "$file" .rb)"
+            ruby -c "$file"
+            brew audit --cask --strict --online "ChiaKi-Li/cask/$token"
           done
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         with:
+          base: ${{ github.event.repository.default_branch }}
           branch: automation/update-casks
           delete-branch: true
           add-paths: Casks/*.rb
           commit-message: "chore: update casks"
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           title: "chore: update outdated casks"
           body: |
             Automated Cask updates.
+
+            Ruby syntax and strict online Homebrew audits passed for all Casks
+            in the update workflow before this PR was created.
+            PR CI may require manual approval when using GITHUB_TOKEN.
 
             Please review the versions, checksums, and upstream releases
             before merging.
