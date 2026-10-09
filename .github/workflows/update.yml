@@ -1,0 +1,95 @@
+name: Update Casks
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Homebrew tap
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/chiaki-li"
+          ln -s "$GITHUB_WORKSPACE" \
+            "$(brew --repository)/Library/Taps/chiaki-li/homebrew-cask"
+
+      - name: Update outdated Casks
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for file in Casks/*.rb; do
+            token="$(basename "$file" .rb)"
+
+            result="$(brew livecheck --cask --json "ChiaKi-Li/cask/$token")"
+
+            outdated="$(jq -r '.[0].version.outdated' <<< "$result")"
+            latest="$(jq -r '.[0].version.latest' <<< "$result")"
+
+            if [[ "$outdated" != "true" ]]; then
+              echo "$token is up to date"
+              continue
+            fi
+
+            echo "Updating $token to $latest"
+
+            case "$token" in
+              ftop)
+                url="https://github.com/Nongfsq/ftop/releases/download/v${latest}/Ftop-${latest}-arm64.zip"
+                ;;
+              kazumi)
+                url="https://github.com/Predidit/Kazumi/releases/download/${latest}/Kazumi_macos_${latest}.dmg"
+                ;;
+              *)
+                echo "Unsupported cask: $token"
+                exit 1
+                ;;
+            esac
+
+            archive="$(mktemp)"
+            curl -fL --retry 3 -o "$archive" "$url"
+            checksum="$(shasum -a 256 "$archive" | awk '{print $1}')"
+            rm -f "$archive"
+
+            ruby - "$file" "$latest" "$checksum" <<'RUBY'
+          path, version, checksum = ARGV
+          content = File.read(path)
+
+          abort "Version not found" unless content.match?(/^\s*version "/)
+          abort "SHA256 not found" unless content.match?(/^\s*sha256 "/)
+
+          content.sub!(/^\s*version ".*"/, %(  version "#{version}"))
+          content.sub!(/^\s*sha256 ".*"/, %(  sha256 "#{checksum}"))
+
+          File.write(path, content)
+          RUBY
+
+            ruby -c "$file"
+            brew audit --cask --strict "ChiaKi-Li/cask/$token"
+          done
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: automation/update-casks
+          delete-branch: true
+          add-paths: Casks/*.rb
+          commit-message: "chore: update casks"
+          title: "chore: update outdated casks"
+          body: |
+            Automated Cask updates.
+
+            Please review the versions, checksums, and upstream releases
+            before merging.
