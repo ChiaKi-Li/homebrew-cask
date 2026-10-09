@@ -63,11 +63,11 @@ brew livecheck --cask ChiaKi-Li/cask/token
 
 - 使用 GitHub Actions 验证 Cask。
 - 检查上游发布版本以发现更新。
-- 自动更新通过 PR 提出，经过审阅后再合并。
-- 创建更新 PR 前，验证发布资产、校验值，并对所有 Cask 执行严格在线 Homebrew 审计。更新不会自动合并。
-- 需要在 **Settings → Actions → General → Workflow permissions** 中允许 GitHub Actions 创建 PR。使用 `GITHUB_TOKEN` 创建的 PR，其 CI 可能需要手动批准；更新工作流本身也会执行验证。
+- 自动更新通过 PR 提出，自动验证通过后以 squash 方式合并。
+- 创建更新 PR 前验证发布资产和校验值；创建后检出 PR 的实际提交，对所有 Cask 执行 Ruby 语法检查和严格在线 Homebrew 审计。检查失败或提交发生变化时，不会自动合并。
+- 需要在 **Settings → Actions → General → Workflow permissions** 中允许 GitHub Actions 创建 PR。使用 `GITHUB_TOKEN` 创建的 PR 不会自动触发 PR CI，因此由更新工作流验证后合并；不会绕过分支保护规则。
 
-要手动检查更新工作流，请在 Actions 页面运行 **Update Casks**。所有 Cask 都是最新版时，不会创建 PR；发现较新的稳定版本时，工作流会创建或更新 `automation/update-casks` 分支的 PR，供维护者审阅。
+要手动检查更新工作流，请在 Actions 页面运行 **Update Casks**。所有 Cask 都是最新版时，不会创建 PR；发现较新的稳定版本时，工作流会创建或更新 `automation/update-casks` 分支的 PR，验证通过后自动合并；失败时保留 PR 供维护者检查。
 
 ### 免责声明
 
@@ -134,11 +134,11 @@ brew livecheck --cask ChiaKi-Li/cask/token
 
 - Casks are validated using GitHub Actions.
 - Upstream releases are monitored for updates.
-- Automated updates are proposed through pull requests and reviewed before merging.
-- Update proposals validate release assets, checksums, and all Casks with strict online Homebrew audits before creating a PR. Updates are never automatically merged.
-- GitHub Actions must be allowed to create pull requests under **Settings → Actions → General → Workflow permissions**. PR CI created with `GITHUB_TOKEN` may require manual approval; validation also runs in the update workflow itself.
+- Automated updates are proposed through pull requests and squash-merged after automated validation.
+- Release assets and checksums are validated before creating a PR. The actual PR commit is then checked with Ruby syntax checks and strict online Homebrew audits for all Casks. Failed checks or a changed PR commit prevent automatic merging.
+- GitHub Actions must be allowed to create pull requests under **Settings → Actions → General → Workflow permissions**. PRs created with `GITHUB_TOKEN` do not trigger PR CI automatically, so the update workflow validates and merges them without bypassing branch protection rules.
 
-To check the update workflow manually, run **Update Casks** from the Actions tab. When all Casks are current, no PR is created. When a newer stable release is available, the workflow creates or updates `automation/update-casks` for review.
+To check the update workflow manually, run **Update Casks** from the Actions tab. When all Casks are current, no PR is created. When a newer stable release is available, the workflow creates or updates `automation/update-casks` for validation and automatic merging. Failed validation leaves the PR open for investigation.
 
 ### Disclaimer
 

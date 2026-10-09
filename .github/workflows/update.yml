@@ -126,19 +126,8 @@ jobs:
               jq -e --arg url "$url" '.casks[0].url == $url' > /dev/null
           done
 
-      # Validate here: PR workflows created by GITHUB_TOKEN may need approval.
-      - name: Validate Casks before proposing updates
-        env:
-          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for file in Casks/*.rb; do
-            token="$(basename "$file" .rb)"
-            ruby -c "$file"
-            brew audit --cask --strict --online "ChiaKi-Li/cask/$token"
-          done
-
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
           base: ${{ github.event.repository.default_branch }}
@@ -152,9 +141,50 @@ jobs:
           body: |
             Automated Cask updates.
 
-            Ruby syntax and strict online Homebrew audits passed for all Casks
-            in the update workflow before this PR was created.
-            PR CI may require manual approval when using GITHUB_TOKEN.
+            The update workflow validates the PR commit with Ruby syntax checks
+            and strict online Homebrew audits before automatically merging it.
+            Failed validation leaves the PR open for manual investigation.
 
-            Please review the versions, checksums, and upstream releases
-            before merging.
+      # GITHUB_TOKEN-created PRs do not trigger PR CI; validate the PR commit here.
+      - name: Checkout update PR commit
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.cpr.outputs.pull-request-head-sha }}
+          persist-credentials: false
+
+      - name: Validate update PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          set -euo pipefail
+          # Only Cask changes from the dedicated update branch may be merged.
+          gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json baseRefName,headRefName,isCrossRepository |
+            jq -e --arg base "${{ github.event.repository.default_branch }}" '
+              .baseRefName == $base and .headRefName == "automation/update-casks" and
+              .isCrossRepository == false
+            ' > /dev/null
+          files="$(gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --name-only)"
+          [[ -n "$files" ]]
+          while IFS= read -r file; do
+            [[ "$file" =~ ^Casks/[^/]+\.rb$ ]] || exit 1
+          done <<< "$files"
+          for file in Casks/*.rb; do
+            token="$(basename "$file" .rb)"
+            ruby -c "$file"
+            brew audit --cask --strict --online "ChiaKi-Li/cask/$token"
+          done
+
+      - name: Merge validated update PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+          PR_HEAD: ${{ steps.cpr.outputs.pull-request-head-sha }}
+        run: |
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --squash --match-head-commit "$PR_HEAD"
