@@ -36,6 +36,7 @@ jobs:
       - name: Update outdated Casks
         env:
           GH_TOKEN: ${{ github.token }}
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -43,13 +44,21 @@ jobs:
           for file in Casks/*.rb; do
             token="$(basename "$file" .rb)"
 
-            result="$(brew livecheck --cask --json "ChiaKi-Li/cask/$token")"
+            if ! result="$(brew livecheck --cask --json "ChiaKi-Li/cask/$token")"; then
+              echo "::error::livecheck failed for $token"
+              printf '%s\n' "$result" >&2
+              exit 1
+            fi
 
-            jq -e --arg token "$token" '
+            if ! jq -e --arg token "$token" '
               length == 1 and .[0].cask == $token and
               (.[0].version.outdated | type == "boolean") and
               (.[0].version.latest | type == "string" and test("^[0-9]+(\\.[0-9]+)+$"))
-            ' <<< "$result" > /dev/null
+            ' <<< "$result" > /dev/null; then
+              echo "::error::Unexpected livecheck result for $token"
+              printf '%s\n' "$result" >&2
+              exit 1
+            fi
             outdated="$(jq -r '.[0].version.outdated' <<< "$result")"
             latest="$(jq -r '.[0].version.latest' <<< "$result")"
 
@@ -114,6 +123,8 @@ jobs:
 
       # Validate here: PR workflows created by GITHUB_TOKEN may need approval.
       - name: Validate Casks before proposing updates
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           for file in Casks/*.rb; do
