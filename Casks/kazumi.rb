@@ -15,5 +15,7 @@ cask "kazumi" do
 
   depends_on macos: :monterey
 
+  auto_updates true
+
   app "Kazumi.app"
 end
