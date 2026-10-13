@@ -6,9 +6,7 @@
 
 ## 中文
 
-一个用于 macOS 应用的非官方 Homebrew tap。
-
-本仓库提供社区维护的 Cask，方便安装尚未收录到 Homebrew 官方仓库的应用。
+社区维护的非官方 Homebrew tap，用于安装尚未收录到官方仓库的 macOS 应用。
 
 ### 安装
 
@@ -30,11 +28,14 @@ brew tap ChiaKi-Li/cask
 brew install --cask --adopt ChiaKi-Li/cask/token
 ```
 
-接管前请确认本地应用版本与 Cask 提供的版本一致。查看 Cask 版本：
+接管前查看 Cask 版本，并与应用内的本地版本比较：
 
 ```bash
+brew update
 brew info --cask ChiaKi-Li/cask/token
 ```
+
+`--adopt` 不会升级应用。本地版本较旧时先更新应用，较新时等待 tap 更新；版本一致后再接管。若仍提示应用不一致，请核对来源和安装位置，不要用 `--force` 绕过检查。
 
 ### 可用应用
 
@@ -48,11 +49,18 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### 更新
 
-更新 Homebrew 和指定应用，将 `token` 替换为应用的 Cask 名称：
+更新指定应用（将 `token` 替换为 Cask 名称）：
 
 ```bash
 brew update
 brew upgrade --cask ChiaKi-Li/cask/token
+```
+
+或更新全部由 Homebrew 管理的软件：
+
+```bash
+brew update
+brew upgrade
 ```
 
 检查上游发布版本：
@@ -63,29 +71,23 @@ brew livecheck --cask ChiaKi-Li/cask/token
 
 ### 维护
 
-- 使用 GitHub Actions 验证 Cask。
-- 检查上游发布版本以发现更新。
-- 自动更新通过 PR 提出，自动验证通过后以 squash 方式合并。
-- 创建更新 PR 前验证发布资产和校验值；创建后检出 PR 的实际提交，对所有 Cask 执行 Ruby 语法检查和严格在线 Homebrew 审计。检查失败或提交发生变化时，不会自动合并。
-- 需要在 **Settings → Actions → General → Workflow permissions** 中允许 GitHub Actions 创建 PR。使用 `GITHUB_TOKEN` 创建的 PR，其 PR CI 可能无法自动运行，因此由更新工作流验证后合并；不会绕过分支保护规则。
+- 定时检查、手动运行 **Update Casks**，或推送 `Casks/**` 修改到 `main`，都会检查全部 Cask 并生成应用表格。
+- 有变化时创建或更新 `automation/update-casks` PR；无变化时不创建 PR。
+- 验证正式发布资产、SHA256 和 PR 实际改动，并对全部 Cask 执行 Ruby 语法检查及严格在线审计。通过后 squash 合并；失败时保留 PR，不绕过分支保护。
 
-要手动检查更新工作流，请在 Actions 页面运行 **Update Casks**。版本和应用列表均无变化时，不会创建 PR；发现较新的稳定版本或应用列表需要更新时，工作流会创建或更新 `automation/update-casks` 分支的 PR，验证通过后自动合并；失败时保留 PR 供维护者检查。
+在 **Settings → Actions → General → Workflow permissions** 中允许 Actions 创建 PR。`GITHUB_TOKEN` 创建的 PR 可能不触发 PR CI，因此验证由更新工作流完成。
 
-新增符合以下格式的应用，只需提交 `Casks/<token>.rb`，默认分支收到 Cask 修改后会自动运行更新流程并补齐应用列表：单一数字版本、单一 SHA256、GitHub Releases 下载地址随版本变化，以及显式配置的可靠 `livecheck`。仓库、标签和下载文件从 Cask 解析，不需要修改工作流。应用列表由 Cask 的 `name`、`desc` 和 `homepage` 生成，中英文表格均使用英文简介。
+新增应用只需提交 `Casks/<token>.rb`。自动更新支持单一数字版本、单一 SHA256、随版本变化的 GitHub Releases URL 和显式可靠的 `livecheck`；仓库、标签和资产均从 Cask 解析。中英文应用表格使用 `name`、英文 `desc` 和 `homepage` 自动生成。
 
-多架构分别下载、语言分支、复杂版本或非 GitHub 下载源暂不支持自动更新，会保留 Cask 并报告原因。下载、发布资产或校验错误会使更新流程失败。首次加入应用仍需人工核对架构、系统要求和应用包；自动审计不能代替实际运行测试。
+多架构分别下载、语言分支、复杂版本及非 GitHub 来源保持原样并报告原因；下载、发布资产或校验错误会使流程失败。新应用仍需人工核对架构、系统要求和应用包，审计不能代替运行测试。
 
 ### 免责声明
-
-这是一个独立维护的非官方 Homebrew tap。
 
 所有应用均归各自开发者所有。本仓库仅提供 Homebrew 安装定义，与上游项目没有隶属关系，也未获得上游项目的认可或背书。
 
 ## English
 
-An unofficial Homebrew tap for macOS applications.
-
-This repository provides community-maintained Casks for applications that are not available through the official Homebrew repositories.
+A community-maintained, unofficial Homebrew tap for macOS applications not available in the official repositories.
 
 ### Installation
 
@@ -107,11 +109,14 @@ If you have manually installed the application in Homebrew's target location (us
 brew install --cask --adopt ChiaKi-Li/cask/token
 ```
 
-Before adopting, confirm that the installed application version matches the version provided by the Cask. Check the Cask version with:
+Before adopting, compare the Cask version below with the version shown in the application:
 
 ```bash
+brew update
 brew info --cask ChiaKi-Li/cask/token
 ```
+
+`--adopt` does not upgrade applications. Update an older app first, or wait for the tap to catch up with a newer app. Matching versions are required but do not guarantee adoption; if it fails, check the source and installation location rather than using `--force`.
 
 ### Available Casks
 
@@ -125,11 +130,18 @@ brew info --cask ChiaKi-Li/cask/token
 
 ### Updating
 
-Update Homebrew and a specific application, replacing `token` with the application's Cask name:
+Update a specific application, replacing `token` with its Cask name:
 
 ```bash
 brew update
 brew upgrade --cask ChiaKi-Li/cask/token
+```
+
+Or update all software managed by Homebrew:
+
+```bash
+brew update
+brew upgrade
 ```
 
 To check for upstream releases:
@@ -140,20 +152,16 @@ brew livecheck --cask ChiaKi-Li/cask/token
 
 ### Maintenance
 
-- Casks are validated using GitHub Actions.
-- Upstream releases are monitored for updates.
-- Automated updates are proposed through pull requests and squash-merged after automated validation.
-- Release assets and checksums are validated before creating a PR. The actual PR commit is then checked with Ruby syntax checks and strict online Homebrew audits for all Casks. Failed checks or a changed PR commit prevent automatic merging.
-- GitHub Actions must be allowed to create pull requests under **Settings → Actions → General → Workflow permissions**. PR CI for PRs created with `GITHUB_TOKEN` may not run automatically, so the update workflow validates and merges them without bypassing branch protection rules.
+- Scheduled checks, manual **Update Casks** runs, and `Casks/**` pushes to `main` check all Casks and generate the application tables.
+- Changes create or update an `automation/update-casks` PR; no changes means no PR.
+- Stable release assets, SHA256 checksums, and actual PR changes are verified, followed by Ruby syntax checks and strict online audits for all Casks. Successful updates are squash-merged; failures leave the PR open without bypassing branch protection.
 
-To check the update workflow manually, run **Update Casks** from the Actions tab. When versions and application tables are unchanged, no PR is created. When a newer stable release is available or the tables need refreshing, the workflow creates or updates `automation/update-casks` for validation and automatic merging. Failed validation leaves the PR open for investigation.
+Allow Actions to create PRs under **Settings → Actions → General → Workflow permissions**. PRs created with `GITHUB_TOKEN` may not trigger PR CI, so the update workflow performs validation.
 
-To add a supported application, submit only `Casks/<token>.rb`. Cask changes on the default branch trigger the update workflow and refresh the application tables. Supported Casks have one numeric version, one SHA256, a version-dependent GitHub Releases URL, and an explicit reliable `livecheck`. Repository, tag, and asset information come from the Cask, without workflow changes. Both tables are generated from `name`, `desc`, and `homepage`, using the English description.
+Add an application by submitting `Casks/<token>.rb`. Automatic updates support one numeric version, one SHA256, a version-dependent GitHub Releases URL, and an explicit reliable `livecheck`. Repository, tag, and asset information come from the Cask. Both application tables use `name`, the English `desc`, and `homepage`.
 
-Separate architecture downloads, language branches, complex versions, and non-GitHub sources are not automatically updated; they are left unchanged with a warning. Download, release asset, or checksum errors fail the workflow. New applications still require manual verification of architectures, macOS requirements, and application bundles; automated audits do not replace runtime testing.
+Separate architecture downloads, language branches, complex versions, and non-GitHub sources remain unchanged with a warning. Download, release asset, or checksum errors fail the workflow. New apps still need manual verification of architectures, macOS requirements, and app bundles; audits do not replace runtime testing.
 
 ### Disclaimer
-
-This is an independent, unofficial Homebrew tap.
 
 All applications belong to their respective developers. This repository only provides Homebrew installation definitions and is not affiliated with or endorsed by the upstream projects.
