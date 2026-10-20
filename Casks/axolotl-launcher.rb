@@ -1,6 +1,6 @@
 cask "axolotl-launcher" do
-  version "1.9.8"
-  sha256 "b0559737ee9717a447841714f076d2fad57acf58f6d3c58fa4a3fe343f293fa7"
+  version "1.9.9"
+  sha256 "9bab5b3166e60a826408db1cf2a303a37eb422dbae0bd00408798757f0fc24fa"
 
   url "https://github.com/Mystic-Stars/Axolotl/releases/download/v#{version}/Axolotl.Launcher_#{version}_universal.dmg"
 
