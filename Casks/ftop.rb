@@ -1,6 +1,6 @@
 cask "ftop" do
-  version "0.2.6"
-  sha256 "4f24f58fe4c10b99a5006714572e36769815cf199a6f2e8b5fe42d2e23e871d4"
+  version "0.2.7"
+  sha256 "612ebbd0aa2c4b3958fb0da52128bb523e5891bcbc567cc2ba53bc8704e5ab0d"
 
   url "https://github.com/Nongfsq/ftop/releases/download/v#{version}/Ftop-#{version}-arm64.zip"
 
