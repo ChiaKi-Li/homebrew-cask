@@ -1,12 +1,12 @@
 cask "axolotl-launcher" do
-  version "1.9.9"
-  sha256 "9bab5b3166e60a826408db1cf2a303a37eb422dbae0bd00408798757f0fc24fa"
+  version "1.10.0"
+  sha256 "5f9b95afd8771f28362e163090d1f98822a2590cbea092129b41fecc75b62f61"
 
-  url "https://github.com/Mystic-Stars/Axolotl/releases/download/v#{version}/Axolotl.Launcher_#{version}_universal.dmg"
+  url "https://github.com/Axolotl-Launcher/Axolotl/releases/download/v#{version}/Axolotl.Launcher_#{version}_universal.dmg"
 
   name "Axolotl Launcher"
   desc "Minecraft launcher"
-  homepage "https://github.com/Mystic-Stars/Axolotl"
+  homepage "https://github.com/Axolotl-Launcher/Axolotl"
 
   livecheck do
     url :url

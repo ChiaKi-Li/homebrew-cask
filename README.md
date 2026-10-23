@@ -42,7 +42,7 @@ brew info --cask ChiaKi-Li/cask/token
 <!-- casks:zh:start -->
 | 应用 | 简介 | 安装命令 |
 |---|---|---|
-| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
+| [Axolotl Launcher](https://github.com/Axolotl-Launcher/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
 <!-- casks:zh:end -->
@@ -123,7 +123,7 @@ brew info --cask ChiaKi-Li/cask/token
 <!-- casks:en:start -->
 | Application | Description | Installation |
 |---|---|---|
-| [Axolotl Launcher](https://github.com/Mystic-Stars/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
+| [Axolotl Launcher](https://github.com/Axolotl-Launcher/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
 <!-- casks:en:end -->
