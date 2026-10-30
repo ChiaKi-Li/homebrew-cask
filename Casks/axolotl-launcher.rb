@@ -1,6 +1,6 @@
 cask "axolotl-launcher" do
-  version "1.10.3"
-  sha256 "f54706b21dd06bcc4dc72a3655db5bc56335af4f11d1c8fff5ff34d0c7929ab5"
+  version "1.10.4"
+  sha256 "9f7d32561403a6e3239b664a9abc567b326d1cae5061f26f785511d2b7eecfc2"
 
   url "https://github.com/Axolotl-Launcher/Axolotl/releases/download/v#{version}/Axolotl.Launcher_#{version}_universal.dmg"
 
