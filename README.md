@@ -42,10 +42,11 @@ brew info --cask ChiaKi-Li/cask/token
 <!-- casks:zh:start -->
 | 应用 | 简介 | 安装命令 |
 |---|---|---|
-| [Axolotl Launcher](https://github.com/Axolotl-Launcher/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
 <!-- casks:zh:end -->
+
+Axolotl Launcher 已迁至[项目官方 tap](https://github.com/Axolotl-Launcher/homebrew-tap)，本 tap 不再维护。
 
 ### 更新
 
@@ -123,10 +124,11 @@ brew info --cask ChiaKi-Li/cask/token
 <!-- casks:en:start -->
 | Application | Description | Installation |
 |---|---|---|
-| [Axolotl Launcher](https://github.com/Axolotl-Launcher/Axolotl) | Minecraft launcher | `brew install --cask ChiaKi-Li/cask/axolotl-launcher` |
 | [ftop](https://github.com/Nongfsq/ftop) | Floating system monitor for Apple Silicon Macs | `brew install --cask ChiaKi-Li/cask/ftop` |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Anime streaming application with danmaku support | `brew install --cask ChiaKi-Li/cask/kazumi` |
 <!-- casks:en:end -->
+
+Axolotl Launcher is now maintained in the [project’s official tap](https://github.com/Axolotl-Launcher/homebrew-tap) and is no longer provided here.
 
 ### Updating
 

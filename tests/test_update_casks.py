@@ -174,9 +174,9 @@ class UpdaterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             u.readme_tables("No markers", {"sample": sample})
 
-    def test_all_current_and_fourth_cask(self):
+    def test_all_current_and_additional_casks(self):
         original_files = {}
-        for token in ("axolotl-launcher", "ftop", "kazumi", "sample"):
+        for token in ("extra", "ftop", "kazumi", "sample"):
             path = self.root / f"Casks/{token}.rb"
             path.write_text(SOURCE.replace('cask "sample"', f'cask "{token}"'))
             original_files[path] = path.read_text()
